@@ -1,0 +1,26 @@
+"use client";
+
+import { useTranslation } from "@/components/TranslationProvider";
+
+export default function Error({
+  error,
+  unstable_retry,
+}: {
+  error: Error & { digest?: string };
+  unstable_retry: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50 px-6 py-16 text-center">
+      <h2 className="mb-2 text-xl font-semibold text-red-800">{t("error.boundary.title")}</h2>
+      <p className="mb-4 text-sm text-red-600">{error.message}</p>
+      <button
+        onClick={() => unstable_retry()}
+        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+      >
+        {t("common.retry")}
+      </button>
+    </div>
+  );
+}

@@ -1,7 +1,0 @@
-com\hsbc\market\config\CacheConfig.class
-com\hsbc\market\model\Property.class
-com\hsbc\market\service\MarketService.class
-com\hsbc\market\controller\MarketController.class
-com\hsbc\market\config\WebConfig.class
-com\hsbc\market\controller\MarketController$WhatIfRequest.class
-com\hsbc\market\MarketApplication.class
