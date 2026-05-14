@@ -10,10 +10,11 @@ import { PriceChart } from "./PriceChart";
 interface PredictionResultProps {
   price: number;
   features: HouseFeatures;
+  modelCoefficients: Record<string, number> | null;
   onAddToComparison: () => void;
 }
 
-export function PredictionResult({ price, features, onAddToComparison }: PredictionResultProps) {
+export function PredictionResult({ price, features, modelCoefficients, onAddToComparison }: PredictionResultProps) {
   const { t } = useTranslation();
 
   const rows = [
@@ -36,7 +37,7 @@ export function PredictionResult({ price, features, onAddToComparison }: Predict
           </p>
         </div>
 
-        <PriceChart price={price} features={features} />
+        <PriceChart price={price} features={features} modelCoefficients={modelCoefficients} />
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           {rows.map(([label, val]) => (

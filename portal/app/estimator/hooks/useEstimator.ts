@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { predictPrice, getHistory } from "@/lib/api";
+import { useState, useCallback, useEffect } from "react";
+import { predictPrice, getModelInfo } from "@/lib/api";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import type { HouseFeatures, PredictHistoryRecord } from "@/lib/types";
+import type { HouseFeatures, PredictHistoryRecord, ModelInfo } from "@/lib/types";
 
 interface EstimatorState {
   loading: boolean;
@@ -17,6 +17,7 @@ export function useEstimator() {
     error: null,
     result: null,
   });
+  const [modelInfo, setModelInfo] = useState<ModelInfo | null>(null);
   const [history, setHistory] = useLocalStorage<PredictHistoryRecord[]>(
     "estimator_history",
     []
@@ -24,6 +25,12 @@ export function useEstimator() {
   const [comparison, setComparison] = useLocalStorage<
     { features: HouseFeatures; price: number }[]
   >("estimator_comparison", []);
+
+  useEffect(() => {
+    getModelInfo()
+      .then(setModelInfo)
+      .catch(() => {/* model info is optional — chart degrades gracefully */});
+  }, []);
 
   const submit = useCallback(async (features: HouseFeatures) => {
     setState({ loading: true, error: null, result: null });
@@ -47,10 +54,7 @@ export function useEstimator() {
 
   const addToComparison = useCallback(
     (features: HouseFeatures, price: number) => {
-      setComparison((prev) => {
-        const next = [...prev, { features, price }];
-        return next.slice(-4); // max 4
-      });
+      setComparison((prev) => [...prev, { features, price }].slice(-4));
     },
     [setComparison]
   );
@@ -68,6 +72,7 @@ export function useEstimator() {
 
   return {
     ...state,
+    modelInfo,
     history,
     comparison,
     submit,

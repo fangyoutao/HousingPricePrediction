@@ -15,6 +15,7 @@ export default function EstimatorPage() {
   const {
     loading,
     result,
+    modelInfo,
     history,
     comparison,
     submit,
@@ -59,6 +60,7 @@ export default function EstimatorPage() {
           <PredictionResult
             price={result}
             features={lastFeatures}
+            modelCoefficients={modelInfo?.coefficients ?? null}
             onAddToComparison={() => addToComparison(lastFeatures, result)}
           />
         )}

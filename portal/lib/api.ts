@@ -1,5 +1,5 @@
-const PYTHON_API = "http://localhost:8001";
-const JAVA_API = "http://localhost:8080";
+const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_API ?? "http://localhost:8001";
+const JAVA_API = process.env.NEXT_PUBLIC_JAVA_API ?? "http://localhost:8080";
 
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {

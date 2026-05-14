@@ -1,21 +1,24 @@
 """
 Train a linear regression model on the housing dataset.
 """
+import os
 import pickle
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import make_pipeline
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
-DATA_PATH = "D:/code/ai/hsbc/House Price Dataset.csv"
-MODEL_PATH = "app/model.pkl"
+DATA_PATH = os.environ.get(
+    "TRAIN_DATA_PATH",
+    os.path.join(os.path.dirname(__file__), "..", "..", "House Price Dataset.csv"),
+)
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "app", "model.pkl")
 
 FEATURES = [
     "square_footage", "bedrooms", "bathrooms",
-    "lot_size", "school_rating",
+    "year_built", "lot_size", "distance_to_city_center", "school_rating",
 ]
 TARGET = "price"
 

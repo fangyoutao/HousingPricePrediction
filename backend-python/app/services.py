@@ -1,38 +1,32 @@
-import asyncio
-import requests
+import os
+import httpx
 
-MODEL_API_BASE = "http://localhost:8000"
+MODEL_API_BASE = os.environ.get("MODEL_API_BASE", "http://localhost:8000")
+
+_client: httpx.AsyncClient | None = None
 
 
-async def predict_via_model_api(features: list) -> float:
-    """Call the Task 1 model API to get a prediction."""
-    def _sync():
-        resp = requests.post(
-            f"{MODEL_API_BASE}/predict",
-            json={
-                "features": {
-                    "square_footage": features[0],
-                    "bedrooms": features[1],
-                    "bathrooms": features[2],
-                    "year_built": features[3],
-                    "lot_size": features[4],
-                    "distance_to_city_center": features[5],
-                    "school_rating": features[6],
-                }
-            },
-            timeout=30,
-        )
-        resp.raise_for_status()
-        return resp.json()["predicted_price"]
+def get_client() -> httpx.AsyncClient:
+    global _client
+    if _client is None or _client.is_closed:
+        _client = httpx.AsyncClient(base_url=MODEL_API_BASE, timeout=30.0)
+    return _client
 
-    return await asyncio.to_thread(_sync)
+
+async def close_client() -> None:
+    global _client
+    if _client and not _client.is_closed:
+        await _client.aclose()
+        _client = None
+
+
+async def predict_via_model_api(features: dict) -> float:
+    resp = await get_client().post("/predict", json={"features": features})
+    resp.raise_for_status()
+    return resp.json()["predicted_price"]
 
 
 async def get_model_info_from_api() -> dict:
-    """Fetch model info from the Task 1 model API."""
-    def _sync():
-        resp = requests.get(f"{MODEL_API_BASE}/model-info", timeout=10)
-        resp.raise_for_status()
-        return resp.json()
-
-    return await asyncio.to_thread(_sync)
+    resp = await get_client().get("/model-info")
+    resp.raise_for_status()
+    return resp.json()

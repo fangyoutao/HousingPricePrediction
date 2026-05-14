@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portal — HSBC Property Portal
 
-## Getting Started
+Next.js 16 frontend for the Housing Price Prediction system.
 
-First, run the development server:
+## Pages
+
+| Route | Description |
+|---|---|
+| `/` | Home — links to both apps |
+| `/estimator` | Property Value Estimator — form input, ML prediction, comparison table, history |
+| `/market-analysis` | Market Analysis — KPI dashboard, property table, filters, what-if analysis, CSV/PDF export |
+
+## Features
+
+- **Price Estimator** — submit property features, receive ML-backed price prediction
+- **Feature contribution chart** — breakdown of how each feature group contributes to the prediction, derived from real model coefficients
+- **Comparison view** — side-by-side comparison of up to 4 properties
+- **Estimate history** — last 50 predictions persisted in localStorage
+- **Market dashboard** — avg/median/min/max price, bedroom distribution chart, price range visualisation
+- **Filterable property table** — sortable by any column, filter by price and bedroom range
+- **What-if analysis** — calls the Java backend (which calls the ML model) to estimate price for custom inputs
+- **Export** — download filtered data as CSV or PDF
+- **i18n** — English / Chinese, saved to localStorage
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # adjust API URLs if needed
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Default | Description |
+|---|---|---|
+| `NEXT_PUBLIC_PYTHON_API` | `http://localhost:8001` | backend-python (BFF) base URL |
+| `NEXT_PUBLIC_JAVA_API` | `http://localhost:8080` | backend-java (market analysis) base URL |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Build
 
-## Learn More
+```bash
+npm run build
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Next.js 16** (App Router)
+- **Tailwind CSS 4**
+- **Recharts** — chart rendering
+- **Lucide React** — icons
+- **jsPDF** — PDF export
+- **TypeScript 5**

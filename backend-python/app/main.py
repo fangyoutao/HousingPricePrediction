@@ -1,7 +1,7 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 
 from app.schemas import (
     HouseFeatures,
@@ -10,16 +10,17 @@ from app.schemas import (
     PredictHistoryRecord,
     ModelInfoResponse,
 )
-from app.services import predict_via_model_api, get_model_info_from_api
+from app.services import predict_via_model_api, get_model_info_from_api, close_client
+from app import db
 
-# In-memory history store
-_history: list = []
-_history_counter: int = 0
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await db.init_db()
     yield
+    await close_client()
 
 
 app = FastAPI(
@@ -31,49 +32,42 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-def _features_to_list(f: HouseFeatures) -> list:
-    return [
-        f.square_footage,
-        f.bedrooms,
-        f.bathrooms,
-        f.year_built,
-        f.lot_size,
-        f.distance_to_city_center,
-        f.school_rating,
-    ]
+def _features_to_dict(f: HouseFeatures) -> dict:
+    return f.model_dump()
 
 
 @app.post("/predict", response_model=PredictResponse, tags=["Prediction"])
 async def predict(req: PredictRequest):
-    global _history_counter
+    features_dict = _features_to_dict(req.features)
     try:
-        price = await predict_via_model_api(_features_to_list(req.features))
+        price = await predict_via_model_api(features_dict)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Model API error: {str(e)}")
 
-    _history_counter += 1
-    _history.append(
-        PredictHistoryRecord(
-            id=_history_counter,
-            features=req.features,
-            predicted_price=round(price, 2),
-            created_at=datetime.now(timezone.utc),
-        )
-    )
-
-    return PredictResponse(predicted_price=round(price, 2))
+    price = round(price, 2)
+    await db.save_prediction(features_dict, price)
+    return PredictResponse(predicted_price=price)
 
 
 @app.get("/history", response_model=list[PredictHistoryRecord], tags=["History"])
 async def get_history():
-    return list(reversed(_history[-50:]))
+    rows = await db.get_history(limit=50)
+    return [
+        PredictHistoryRecord(
+            id=r["id"],
+            features=HouseFeatures(**r["features"]),
+            predicted_price=r["predicted_price"],
+            created_at=r["created_at"],
+        )
+        for r in rows
+    ]
 
 
 @app.get("/model-info", response_model=ModelInfoResponse, tags=["Model"])

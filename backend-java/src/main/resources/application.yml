@@ -4,3 +4,7 @@ server:
 spring:
   application:
     name: market-analysis
+
+model:
+  api:
+    base-url: ${MODEL_API_BASE_URL:http://localhost:8000}
