@@ -1,18 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getMarketStats, getProperties, postWhatIf } from "@/lib/api";
 import type { MarketStats, PropertyData, HouseFeatures } from "@/lib/types";
+
+interface Filters {
+  minPrice?: number;
+  maxPrice?: number;
+  minBedrooms?: number;
+  maxBedrooms?: number;
+}
 
 interface UseMarketDataReturn {
   stats: MarketStats | null;
   properties: PropertyData[];
   loading: boolean;
   error: string | null;
-  filters: { minPrice?: number; maxPrice?: number; minBedrooms?: number; maxBedrooms?: number };
-  setFilters: (f: { minPrice?: number; maxPrice?: number; minBedrooms?: number; maxBedrooms?: number }) => void;
+  filters: Filters;
+  setFilters: (f: Filters) => void;
   refresh: () => Promise<void>;
-  // What-if
   whatIfResult: number | null;
   whatIfLoading: boolean;
   runWhatIf: (f: HouseFeatures) => Promise<void>;
@@ -23,14 +29,13 @@ export function useMarketData(): UseMarketDataReturn {
   const [properties, setProperties] = useState<PropertyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<{
-    minPrice?: number;
-    maxPrice?: number;
-    minBedrooms?: number;
-    maxBedrooms?: number;
-  }>({});
+  const [filters, setFilters] = useState<Filters>({});
   const [whatIfResult, setWhatIfResult] = useState<number | null>(null);
   const [whatIfLoading, setWhatIfLoading] = useState(false);
+
+  // Ref keeps fetchData's dep array stable while always seeing latest filters.
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -38,7 +43,7 @@ export function useMarketData(): UseMarketDataReturn {
     try {
       const [statsData, propsData] = await Promise.all([
         getMarketStats(),
-        getProperties(filters),
+        getProperties(filtersRef.current),
       ]);
       setStats(statsData);
       setProperties(propsData);
@@ -47,12 +52,11 @@ export function useMarketData(): UseMarketDataReturn {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.minPrice, filters.maxPrice, filters.minBedrooms, filters.maxBedrooms]);
+  }, []); // stable — reads filters via ref, not closure
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, filters.minPrice, filters.maxPrice, filters.minBedrooms, filters.maxBedrooms]);
 
   const runWhatIf = useCallback(async (features: HouseFeatures) => {
     setWhatIfLoading(true);

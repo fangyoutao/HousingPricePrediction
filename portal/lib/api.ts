@@ -93,12 +93,21 @@ export async function getProperties(filters?: {
   >(`${JAVA_API}/api/properties${qs ? `?${qs}` : ""}`);
 }
 
+function snakeToCamel(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    result[camelKey] = value;
+  }
+  return result;
+}
+
 export async function postWhatIf(features: Record<string, unknown>) {
   return fetchJSON<{ predictedPrice: number; currency: string }>(
     `${JAVA_API}/api/what-if`,
     {
       method: "POST",
-      body: JSON.stringify(features),
+      body: JSON.stringify(snakeToCamel(features)),
     }
   );
 }

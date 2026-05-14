@@ -14,17 +14,21 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   }, [key]);
 
+  // Use functional setState so we never need storedValue in deps,
+  // eliminating the stale-closure problem on rapid successive updates.
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      try {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
-      } catch {
-        // ignore
-      }
+      setStoredValue((prev) => {
+        const next = value instanceof Function ? value(prev) : value;
+        try {
+          window.localStorage.setItem(key, JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+        return next;
+      });
     },
-    [key, storedValue]
+    [key]
   );
 
   return [storedValue, setValue] as const;
