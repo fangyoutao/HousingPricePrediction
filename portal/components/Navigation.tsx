@@ -24,7 +24,7 @@ export function Navigation() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
           <Building2 className="h-6 w-6 text-blue-600" />
-          <span className="text-lg font-bold text-gray-900">HSBC Property Portal</span>
+          <span className="text-lg font-bold text-gray-900">Property Portal</span>
         </Link>
 
         {/* Desktop nav */}

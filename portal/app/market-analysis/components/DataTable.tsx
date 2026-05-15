@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { useTranslation } from "@/components/TranslationProvider";
 import { formatCurrency } from "@/lib/utils";
 import type { PropertyData } from "@/lib/types";
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE = 10;
 
 interface DataTableProps {
   properties: PropertyData[];
@@ -16,8 +19,11 @@ type SortKey = keyof PropertyData;
 
 export function DataTable({ properties }: DataTableProps) {
   const { t } = useTranslation();
-  const [sortKey, setSortKey] = useState<SortKey>("price");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortKey, setSortKey] = useState<SortKey>("id");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { setPage(1); }, [properties]);
 
   const sorted = useMemo(() => {
     return [...properties].sort((a, b) => {
@@ -27,6 +33,10 @@ export function DataTable({ properties }: DataTableProps) {
       return sortDir === "asc" ? cmp : -cmp;
     });
   }, [properties, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const toggleSort = (key: SortKey) => {
     if (key === sortKey) {
@@ -85,7 +95,7 @@ export function DataTable({ properties }: DataTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {sorted.map((p) => (
+            {paged.map((p) => (
               <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-3 py-2.5 text-gray-400">{p.id}</td>
                 <td className="px-3 py-2.5 font-medium text-gray-900">
@@ -103,6 +113,37 @@ export function DataTable({ properties }: DataTableProps) {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
+          <span className="text-sm text-gray-500">
+            {t("market.table.showing")} {(safePage - 1) * PAGE_SIZE + 1}–
+            {Math.min(safePage * PAGE_SIZE, sorted.length)} {t("market.table.of")}{" "}
+            {sorted.length}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm text-gray-600 min-w-[4rem] text-center">
+              {safePage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

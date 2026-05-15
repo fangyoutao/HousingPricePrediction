@@ -4,7 +4,7 @@ import { TranslationProvider } from "@/components/TranslationProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HSBC Property Portal",
+  title: "Property Portal",
   description: "Property Value Estimator & Market Analysis",
 };
 

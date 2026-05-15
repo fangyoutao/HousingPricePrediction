@@ -7,7 +7,7 @@ const zh: Record<TranslationKeys, string> = {
   "nav.market": "市场分析",
 
   // Home
-  "home.title": "HSBC 房产门户",
+  "home.title": "房产门户",
   "home.subtitle": "利用机器学习探索房产价值和市场洞察。",
   "home.estimator.title": "房产价值估算",
   "home.estimator.desc": "输入房产信息，即时获取价格预测，支持多房产对比。",
@@ -99,6 +99,8 @@ const zh: Record<TranslationKeys, string> = {
   "market.table.year": "年份",
   "market.table.school": "学区",
   "market.table.noMatch": "没有符合当前筛选条件的房产。",
+  "market.table.showing": "显示",
+  "market.table.of": "共",
   "market.export.csv": "CSV",
   "market.export.pdf": "PDF",
   "market.error.title": "市场分析出错",

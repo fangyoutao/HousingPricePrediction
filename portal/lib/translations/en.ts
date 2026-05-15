@@ -5,7 +5,7 @@ const en = {
   "nav.market": "Market Analysis",
 
   // Home
-  "home.title": "HSBC Property Portal",
+  "home.title": "Property Portal",
   "home.subtitle": "Explore property values and market insights powered by machine learning.",
   "home.estimator.title": "Property Value Estimator",
   "home.estimator.desc": "Input property details, get instant price predictions, compare properties side-by-side.",
@@ -97,6 +97,8 @@ const en = {
   "market.table.year": "Year",
   "market.table.school": "School",
   "market.table.noMatch": "No properties match the current filters.",
+  "market.table.showing": "Showing",
+  "market.table.of": "of",
   "market.export.csv": "CSV",
   "market.export.pdf": "PDF",
   "market.error.title": "Market Analysis Error",
