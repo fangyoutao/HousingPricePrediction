@@ -1,6 +1,3 @@
-const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_API ?? "http://localhost:8001";
-const JAVA_API = process.env.NEXT_PUBLIC_JAVA_API ?? "http://localhost:8080";
-
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...options,
@@ -16,13 +13,24 @@ async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 // --- Python Backend (App 1) ---
+// Proxied by Next.js rewrites: /api/python/* → localhost:8001/*
 
 export async function predictPrice(features: Record<string, unknown>) {
   return fetchJSON<{ predicted_price: number; currency: string }>(
-    `${PYTHON_API}/predict`,
+    "/api/python/predict",
     {
       method: "POST",
       body: JSON.stringify({ features }),
+    }
+  );
+}
+
+export async function predictPriceBatch(featuresList: Record<string, unknown>[]) {
+  return fetchJSON<{ predictions: { predicted_price: number; currency: string }[] }>(
+    "/api/python/predict/batch",
+    {
+      method: "POST",
+      body: JSON.stringify({ features: featuresList }),
     }
   );
 }
@@ -35,7 +43,7 @@ export async function getHistory() {
       predicted_price: number;
       created_at: string;
     }[]
-  >(`${PYTHON_API}/history`);
+  >("/api/python/history");
 }
 
 export async function getModelInfo() {
@@ -44,10 +52,11 @@ export async function getModelInfo() {
     intercept: number;
     metrics: Record<string, number>;
     features: string[];
-  }>(`${PYTHON_API}/model-info`);
+  }>("/api/python/model-info");
 }
 
 // --- Java Backend (App 2) ---
+// Proxied by Next.js rewrites: /api/java/* → localhost:8080/api/*
 
 export async function getMarketStats() {
   return fetchJSON<{
@@ -62,7 +71,7 @@ export async function getMarketStats() {
     avgSchoolRating: number;
     bedroomsDistribution: Record<string, number>;
     yearDecadeDistribution: Record<string, number>;
-  }>(`${JAVA_API}/api/stats`);
+  }>("/api/java/stats");
 }
 
 export async function getProperties(filters?: {
@@ -89,7 +98,7 @@ export async function getProperties(filters?: {
       schoolRating: number;
       price: number;
     }[]
-  >(`${JAVA_API}/api/properties${qs ? `?${qs}` : ""}`);
+  >(`/api/java/properties${qs ? `?${qs}` : ""}`);
 }
 
 function snakeToCamel(obj: Record<string, unknown>): Record<string, unknown> {
@@ -103,10 +112,20 @@ function snakeToCamel(obj: Record<string, unknown>): Record<string, unknown> {
 
 export async function postWhatIf(features: Record<string, unknown>) {
   return fetchJSON<{ predictedPrice: number; currency: string }>(
-    `${JAVA_API}/api/what-if`,
+    "/api/java/what-if",
     {
       method: "POST",
       body: JSON.stringify(snakeToCamel(features)),
+    }
+  );
+}
+
+export async function postWhatIfBatch(featuresList: Record<string, unknown>[]) {
+  return fetchJSON<{ predictedPrice: number; currency: string }[]>(
+    "/api/java/what-if/batch",
+    {
+      method: "POST",
+      body: JSON.stringify(featuresList.map(snakeToCamel)),
     }
   );
 }

@@ -1,4 +1,3 @@
-import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -14,9 +13,6 @@ from app.schemas import (
 )
 from app.services import predict_via_model_api, predict_batch_via_model_api, get_model_info_from_api, close_client
 from app import db
-
-ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,10 +30,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    max_age=0,
 )
 
 
