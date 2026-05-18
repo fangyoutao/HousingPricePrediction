@@ -13,6 +13,11 @@ _model_payload = None
 
 def load_model():
     global _model_payload
+    if not os.path.exists(MODEL_PATH):
+        raise FileNotFoundError(
+            f"Model file not found at {MODEL_PATH}. "
+            "Run 'python train.py' to train and save the model first."
+        )
     with open(MODEL_PATH, "rb") as f:
         _model_payload = pickle.load(f)
     return _model_payload
@@ -63,7 +68,9 @@ def is_loaded() -> bool:
 
 
 def features_from_dict(d) -> list:
-    """Extract feature values from a dict-like object using only the model's feature list."""
+    """Extract feature values from a dict or object using only the model's feature list."""
     payload = get_model()
     trained_features = payload["features"]
+    if isinstance(d, dict):
+        return [d[f] for f in trained_features]
     return [getattr(d, f) for f in trained_features]

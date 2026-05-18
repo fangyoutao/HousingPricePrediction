@@ -4,10 +4,9 @@ const JAVA_API = process.env.NEXT_PUBLIC_JAVA_API ?? "http://localhost:8080";
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+    headers: options?.method && options.method !== "GET"
+      ? { "Content-Type": "application/json", ...options?.headers }
+      : { ...options?.headers },
   });
   if (!res.ok) {
     const text = await res.text();

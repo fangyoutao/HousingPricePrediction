@@ -4,6 +4,8 @@ FastAPI application for Housing Price Prediction.
 from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 
+import logging
+
 from app.schemas import (
     PredictRequest,
     PredictResponse,
@@ -13,6 +15,8 @@ from app.schemas import (
     HealthResponse,
 )
 from app import model
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -46,8 +50,9 @@ async def predict_single(req: PredictRequest):
     try:
         price = model.predict(_features_to_list(req.features))
         return PredictResponse(predicted_price=round(price, 2))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Prediction failed for features: %s", req.features)
+        raise HTTPException(status_code=500, detail="Prediction failed")
 
 
 @app.post("/predict/batch", response_model=BatchPredictResponse, tags=["Prediction"])
@@ -58,8 +63,9 @@ async def predict_batch(req: BatchPredictRequest):
         return BatchPredictResponse(
             predictions=[PredictResponse(predicted_price=round(p, 2)) for p in prices]
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Batch prediction failed for %d samples", len(req.features))
+        raise HTTPException(status_code=500, detail="Batch prediction failed")
 
 
 @app.get("/model-info", response_model=ModelInfoResponse, tags=["Model"])
