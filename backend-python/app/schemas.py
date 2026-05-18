@@ -17,9 +17,17 @@ class PredictRequest(BaseModel):
     features: HouseFeatures
 
 
+class BatchPredictRequest(BaseModel):
+    features: List[HouseFeatures]
+
+
 class PredictResponse(BaseModel):
     predicted_price: float
     currency: str = "USD"
+
+
+class BatchPredictResponse(BaseModel):
+    predictions: List[PredictResponse]
 
 
 class PredictHistoryRecord(BaseModel):

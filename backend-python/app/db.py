@@ -32,6 +32,20 @@ async def save_prediction(features: dict, price: float) -> int:
         return cursor.lastrowid
 
 
+async def save_predictions_batch(features_list: list[dict], prices: list[float]) -> list[int]:
+    now = datetime.now(timezone.utc).isoformat()
+    async with aiosqlite.connect(DB_PATH) as db:
+        ids = []
+        for features, price in zip(features_list, prices):
+            cursor = await db.execute(
+                "INSERT INTO predictions (features, price, created_at) VALUES (?, ?, ?)",
+                (json.dumps(features), price, now),
+            )
+            ids.append(cursor.lastrowid)
+        await db.commit()
+    return ids
+
+
 async def get_history(limit: int = 50) -> list[dict]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row

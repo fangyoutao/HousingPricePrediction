@@ -26,6 +26,12 @@ async def predict_via_model_api(features: dict) -> float:
     return resp.json()["predicted_price"]
 
 
+async def predict_batch_via_model_api(features_list: list[dict]) -> list[float]:
+    resp = await get_client().post("/predict/batch", json={"features": features_list})
+    resp.raise_for_status()
+    return [p["predicted_price"] for p in resp.json()["predictions"]]
+
+
 async def get_model_info_from_api() -> dict:
     resp = await get_client().get("/model-info")
     resp.raise_for_status()

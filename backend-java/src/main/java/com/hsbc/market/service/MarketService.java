@@ -132,6 +132,27 @@ public class MarketService {
         return ((Number) response.get("predicted_price")).doubleValue();
     }
 
+    public List<Double> predictWhatIfBatch(List<Map<String, Object>> featuresList) {
+        Map<String, Object> body = Map.of("features", featuresList);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = restTemplate.postForObject(
+                modelApiBaseUrl + "/predict/batch", entity, Map.class);
+
+        if (response == null || !response.containsKey("predictions")) {
+            throw new RuntimeException("Invalid response from model API");
+        }
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> predictions = (List<Map<String, Object>>) response.get("predictions");
+        return predictions.stream()
+                .map(p -> ((Number) p.get("predicted_price")).doubleValue())
+                .collect(Collectors.toList());
+    }
+
     private double calculateMedian(double[] sortedValues) {
         int n = sortedValues.length;
         if (n == 0) return 0;

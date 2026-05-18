@@ -6,11 +6,13 @@ from contextlib import asynccontextmanager
 from app.schemas import (
     HouseFeatures,
     PredictRequest,
+    BatchPredictRequest,
     PredictResponse,
+    BatchPredictResponse,
     PredictHistoryRecord,
     ModelInfoResponse,
 )
-from app.services import predict_via_model_api, get_model_info_from_api, close_client
+from app.services import predict_via_model_api, predict_batch_via_model_api, get_model_info_from_api, close_client
 from app import db
 
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
@@ -54,6 +56,19 @@ async def predict(req: PredictRequest):
     price = round(price, 2)
     await db.save_prediction(features_dict, price)
     return PredictResponse(predicted_price=price)
+
+
+@app.post("/predict/batch", response_model=BatchPredictResponse, tags=["Prediction"])
+async def predict_batch(req: BatchPredictRequest):
+    features_list = [_features_to_dict(f) for f in req.features]
+    try:
+        prices = await predict_batch_via_model_api(features_list)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Model API error: {str(e)}")
+
+    predictions = [PredictResponse(predicted_price=round(p, 2)) for p in prices]
+    await db.save_predictions_batch(features_list, prices)
+    return BatchPredictResponse(predictions=predictions)
 
 
 @app.get("/history", response_model=list[PredictHistoryRecord], tags=["History"])
